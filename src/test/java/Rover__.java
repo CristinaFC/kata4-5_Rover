@@ -1,4 +1,5 @@
 import org.junit.Test;
+import refactoring.Obstacle;
 import refactoring.Rover;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -76,5 +77,21 @@ public class Rover__ {
         rover.go("BL*FRF");
         assertThat(rover.heading()).isEqualTo(North);
         assertThat(rover.position()).isEqualTo(new Position(4,5));
+    }
+
+    @Test
+    public void could_not_go_backward_if_there_is_an_obstacle_behind(){
+        Rover rover = new Rover(North,new Position(5,5));
+        rover.addObstacles(new Obstacle(new Position(5,4)));
+        rover.go(Backward);
+        assertThat(rover.position()).isEqualTo(new Position(5,5));
+    }
+
+    @Test
+    public void could_not_go_backward_if_there_is_an_obstacle_in_front(){
+        Rover rover = new Rover(North,new Position(5,5));
+        rover.addObstacles(new Obstacle(new Position(5,6)));
+        rover.go(Forward);
+        assertThat(rover.position()).isEqualTo(new Position(5,5));
     }
 }
