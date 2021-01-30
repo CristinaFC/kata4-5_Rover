@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="kata3_Rover" />
+        <module name="kata4_Rover" />
       </profile>
     </annotationProcessing>
   </component>

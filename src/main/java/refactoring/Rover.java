@@ -1,111 +1,55 @@
 package refactoring;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
+import java.util.Objects;
 
-import static refactoring.Rover.Heading.*;
+
+import static refactoring.Rover.Order.*;
 
 public class Rover {
 
-	private Position position;
-	private Heading heading;
-	private final Map<Order, Action> actions = new HashMap<>();
-	static Map<Position,Obstacle> obstacles = new HashMap<>();
+	private ViewPoint viewPoint;
+
+	private Map<Order, Action> actions = new HashMap<>();
 
 	{
-		actions.put(Order.Forward, () -> position = position.forward(heading));
-		actions.put(Order.Backward, () -> position = position.backward(heading));
-		actions.put(Order.Right, () -> heading = heading.turnRight());
-		actions.put(Order.Left, () -> heading = heading.turnLeft());
+		actions.put(Forward, ViewPoint::forward);
+		actions.put(Backward,ViewPoint::backward);
+		actions.put(Right, ViewPoint::turnRight);
+		actions.put(Left, ViewPoint::turnLeft);
 	}
 
-	public Rover(String facing, int x, int y) {
-		this(Heading.of(facing), x,y);
+	public Rover(ViewPoint viewPoint){
+		this.viewPoint = viewPoint;
 	}
 
-	public Rover(Heading heading, int x, int y) {
-		this(heading, new Position(x,y));
+	public ViewPoint getViewPoint() {
+		return viewPoint;
 	}
 
-	public Rover(Heading heading, Position position){
-		this.position = position;
-		this.heading = heading;
+	public void set(ViewPoint viewPoint){
+		if (viewPoint == null) return;
+		this.viewPoint = viewPoint;
 	}
-
-	public void addObstacles(Obstacle...obstacles){
-		Arrays.stream(obstacles).forEach(obs -> this.obstacles.put(obs.getPosition(),obs));
-	}
-
-	public boolean detectedNextObstacle(){
-		return !obstacles.containsKey(position().forward(heading));
-	}
-
-	public boolean detectedBackObstacle(){
-		return !obstacles.containsKey(position().backward(heading));
-	}
-
-	public Heading heading() {
-		return heading;
-	}
-
-	public Position position(){
-		return position;
-	}
-
 	public void go(String instructions){
-		Arrays.stream(instructions.split(""))
-				.map(Order::of)
-				.filter(Objects::nonNull)
-				.forEach(order -> actions.get(order).execute());
+		set(go(Arrays.stream(instructions.split("")).map(Order::of)));
 	}
 
 	public void go(Order... orders){
-		for (Order order: orders) {
-			if (order == Order.Forward && detectedNextObstacle()) return;
-			if (order == Order.Backward && detectedNextObstacle()) return;
-			actions.get(order).execute();
-		}
+		set(go(Arrays.stream(orders)));
 	}
 
-	public static class Position {
-		private int x;
-		private int y;
+	private ViewPoint go(Stream<Order> orders){
+		return orders.filter(Objects::nonNull)
+				.reduce(this.viewPoint, this::execute, (v1,v2) -> null);
+	}
 
-		public Position(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-
-		public Position forward(Heading heading) {
-			if(heading == North) return new Position(x,y+1);
-			if(heading == South) return new Position(x,y-1);
-			if(heading == East) return new Position(x+1,y);
-			if(heading == West) return new Position(x-1,y);
-			return null;
-		}
-
-		public Position backward(Heading heading){
-			if(heading == North) return new Position(x,y-1);
-			if(heading == South) return new Position(x,y+1);
-			if(heading == East) return new Position(x-1,y);
-			if(heading == West) return new Position(x+1,y);
-			return this;
-		}
-
-
-
-		@Override
-		public boolean equals(Object object) {
-			return isSameClass(object) && equals((Position) object);
-		}
-
-		private boolean equals(Position position) {
-			return position == this || (x == position.x && y == position.y);
-		}
-
-		private boolean isSameClass(Object object) {
-			return object != null && object.getClass() == Position.class;
-		}
-
+	private ViewPoint execute(ViewPoint v, Order order) {
+		if(v == null) return null;
+		return actions.get(order).execute(v);
 	}
 
 	public enum Order {
@@ -125,39 +69,7 @@ public class Rover {
 	}
 
 	@FunctionalInterface
-	private interface Action { void execute(); }
+	private interface Action { ViewPoint execute(ViewPoint v); }
 
-	public enum Heading {
-		North, East, South, West;
-		static Map<Character, Heading> headings = new HashMap<>();
-
-		static {
-			headings.put('N',North);
-			headings.put('E',East);
-			headings.put('S',South);
-			headings.put('W',West);
-		}
-
-		public static Heading of(String label) {
-			return of(label.charAt(0));
-		}
-
-		public static Heading of(char label) {
-			return headings.get(label);
-		}
-
-		public Heading turnRight() {
-			return values()[add(+1)];
-		}
-
-		public Heading turnLeft() {
-			return values()[add(-1)];
-		}
-
-		private int add(int offset) {
-			return (this.ordinal() + offset + values().length) % values().length;
-		}
-
-	}
 }
 

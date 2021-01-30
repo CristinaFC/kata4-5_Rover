@@ -1,8 +1,8 @@
 import org.junit.Test;
-import refactoring.Rover.Position;
+import refactoring.SimpleViewPoint.Position;
 
 import static org.junit.Assert.assertEquals;
-import static refactoring.Rover.Heading.*;
+import static refactoring.SimpleViewPoint.Heading.*;
 
 public class Position_ {
 

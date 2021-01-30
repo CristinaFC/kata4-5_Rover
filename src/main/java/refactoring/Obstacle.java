@@ -1,8 +1,5 @@
 package refactoring;
-
-import java.util.Random;
-
-import static refactoring.Rover.Position;
+import static refactoring.SimpleViewPoint.Position;
 
 public class Obstacle {
 
